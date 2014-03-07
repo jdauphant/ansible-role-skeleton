@@ -22,7 +22,6 @@ ${ROLE_NAME}_service_state: started
 
 # Service enabled on startup: yes or no
 ${ROLE_NAME}_service_enabled: yes
-
 EOF
 
 cat <<EOF > $ROLE_PATH/handlers/main.yml
@@ -68,4 +67,37 @@ cat <<EOF > $ROLE_PATH/vars/main.yml
 ---
 
 
+EOF
+
+
+cat <<EOF > $ROLE_PATH/.travis.yml
+---
+language: python
+python: "2.7"
+before_install:
+ - sudo apt-get update -qq
+ - sudo apt-get install -qq python-apt python-pycurl
+install:
+  - pip install ansible
+  - ansible --version
+script:
+  - echo localhost > inventory
+  - ansible-playbook -i inventory --syntax-check --list-tasks test.yml
+  - ansible-playbook -i inventory --connection=local --sudo -vvvv test.yml
+EOF
+
+
+cat <<EOF > $ROLE_PATH/ansible.cfg
+---
+[defaults]
+roles_path = ../
+
+EOF
+
+cat <<EOF > $ROLE_PATH/test.yml
+---
+- hosts: localhost
+  remote_user: root
+  roles:
+    - ansible-role-${ROLE_NAME}
 EOF
